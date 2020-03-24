@@ -1,28 +1,28 @@
-version: '3'
+version: "3"
 
 volumes:
-  parity: {}
+  geth: {}
   prometheus: {}
   grafana: {}
 
 services:
-  parity:
-    image: 'exodusmovement/parity:1.11.8-003'
-    container_name: parity
+  geth:
+    image: "exodusmovement/geth:1.11.8-003"
+    container_name: geth
     environment:
-      - PARITY_JSONRPC_INTERFACE=all
-      - PARITY_ARGUMENTS=--light
+      - GETH_JSONRPC_INTERFACE=all
+      - GETH_ARGUMENTS=--light
     volumes:
-      - parity:/home/parity/.local/share/io.parity.ethereum/
+      - geth:/home/geth/.local/share/io.geth.ethereum/
 
-  parity-exporter:
+  geth-exporter:
     build:
       context: ../
-    container_name: parity-exporter
+    container_name: geth-exporter
     environment:
-      - PARITY_EXPORTER_NODE=http://parity:8545/
+      - GETH_EXPORTER_NODE=http://geth:8545/
     depends_on:
-      - parity
+      - geth
     ports:
       - 8000:8000
 
@@ -30,15 +30,15 @@ services:
     image: prom/prometheus:v2.1.0
     container_name: prometheus
     depends_on:
-      - parity-exporter
+      - geth-exporter
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
 
   grafana:
     image: grafana/grafana:5.2.1

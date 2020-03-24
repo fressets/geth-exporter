@@ -1,21 +1,22 @@
 {
-  "name": "parity-exporter",
-  "version": "7.0.0",
-  "description": "Parity exporter for Prometheus",
+  "name": "geth-exporter",
+  "version": "0.1.0",
+  "description": "Geth exporter for Prometheus",
   "keywords": [],
   "bugs": {
-    "url": "https://github.com/exodusmovement/parity-exporter/issues"
+    "url": "https://github.com/fressets/geth-exporter/issues"
   },
   "license": "MIT",
   "contributors": [
-    "Kirill Fomichev <fanatid@ya.ru> (https://github.com/fanatid)"
+    "Kirill Fomichev <fanatid@ya.ru> (https://github.com/fanatid)",
+    "Kenichi Sato <ksato@fressets.com> (https://github.com/ksato9700)"
   ],
   "files": [
     "index.js"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/exodusmovement/parity-exporter.git"
+    "url": "https://github.com/fressets/geth-exporter.git"
   },
   "scripts": {
     "lint": "standard",
@@ -33,6 +34,5 @@
   },
   "engines": {
     "node": ">=10.4.1"
-  },
-  "private": true
+  }
 }

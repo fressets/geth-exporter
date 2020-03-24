@@ -14,7 +14,7 @@ on:
   pull_request:
 
 env:
-  IMAGE_NAME: parity-exporter
+  IMAGE_NAME: geth-exporter
 
 jobs:
   # Run tests.
