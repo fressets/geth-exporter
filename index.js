@@ -68,6 +68,17 @@ async function makeRequest(url, method, params = []) {
   return json.result
 }
 
+const clientNetworkName = {
+  1: "mainnet",
+  2: "morden",
+  3: "ropsten",
+  4: "rinkeby",
+  5: "goerli",
+  6: "kotti",
+  7: "mordor",
+  42:	"kovan",
+  2018: "dev",
+}
 function initGethMetrics(registry, nodeURL) {
   const createGauge = (name, help, labelNames) => new Gauge({
     name,
@@ -78,7 +89,7 @@ function initGethMetrics(registry, nodeURL) {
 
   const gauges = {
     version: createGauge('geth_version', 'Client version', ['value']),
-    chain: createGauge('geth_chain', 'Client chain', ['value']),
+    network: createGauge('geth_network', 'Client network', ['value']),
     latest: {
       hash: createGauge('geth_latest', 'Latest block information', ['hash']),
       sync: createGauge('bitcoind_blockchain_sync', 'Blockchain sync info', ['type'])
@@ -90,7 +101,7 @@ function initGethMetrics(registry, nodeURL) {
 
   const data = {
     version: '',
-    chain: '',
+    network: '',
     latest: '',
     gasPrice: 0,
     peers: new Map([
@@ -101,20 +112,20 @@ function initGethMetrics(registry, nodeURL) {
   return async () => {
     const [
       clientVersion,
-      clientChain,
+      clientNetwork,
       latestBlock,
       syncInfo,
       gasPrice,
       mempool,
-      peersInfo
+      peerCount
     ] = await Promise.all([
       makeRequest(nodeURL, 'web3_clientVersion'),
-      makeRequest(nodeURL, 'geth_chain'),
+      makeRequest(nodeURL, 'net_version'),
       makeRequest(nodeURL, 'eth_getBlockByNumber', ['latest', false]),
       makeRequest(nodeURL, 'eth_syncing'),
       makeRequest(nodeURL, 'eth_gasPrice'),
-      makeRequest(nodeURL, 'geth_allTransactions'),
-      makeRequest(nodeURL, 'geth_netPeers')
+      makeRequest(nodeURL, 'txpool_status'),
+      makeRequest(nodeURL, 'net_peerCount')
     ])
 
     // version
@@ -126,13 +137,14 @@ function initGethMetrics(registry, nodeURL) {
       logger.info(`update version to ${clientVersion}`)
     }
 
-    // chain
-    if (data.chain !== clientChain) {
-      gauges.chain.set({
-        value: clientChain
+    // network
+
+    if (data.network !== clientNetwork) {
+      gauges.network.set({
+        value: clientNetworkName[clientNetwork]
       }, 1)
-      data.chain = clientChain
-      logger.info(`update chain to ${clientChain}`)
+      data.network = clientNetwork
+      logger.info(`update network to ${clientNetwork}`)
     }
 
     // latest
@@ -173,10 +185,7 @@ function initGethMetrics(registry, nodeURL) {
     // mempool
     gauges.mempool.set({
       type: 'size'
-    }, mempool.length)
-    gauges.mempool.set({
-      type: 'bytes'
-    }, mempool.reduce((total, tx) => total + tx.raw.length - 2, 0))
+    }, parseInt(mempool.queued, 16))
 
     // peers
     // const peers = peersInfo.peers.filter((peer) => peer.network.remoteAddress !== 'Handshake')
@@ -189,7 +198,7 @@ function initGethMetrics(registry, nodeURL) {
     // }
     gauges.peers.set({
       version: 'all'
-    }, peersInfo.connected)
+    }, parseInt(peerCount, 16))
   }
 }
 
